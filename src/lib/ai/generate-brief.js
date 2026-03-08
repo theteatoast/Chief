@@ -22,41 +22,52 @@ export async function generateMeetingBrief({ title, participants, description, e
             .join('\n---\n')
         : 'No recent email threads found with participants.';
 
-    const prompt = `You are an executive chief of staff preparing a meeting brief.
+    const prompt = `You are an elite Chief of Staff preparing a briefing for a busy founder before an important meeting.
 
-Using the following information, prepare a short structured briefing for a professional meeting.
+Your job is to compress all relevant information into a clear, high signal briefing that can be read in under 60 seconds.
 
-MEETING DETAILS:
-- Title: ${title}
-- Time: ${startTime}
-- Description: ${description || 'No description provided'}
-- Participants:
+You must think like a strategic advisor.
+
+Use the context provided to produce a structured briefing.
+
+MEETING DATA:
+* Meeting Title: ${title}
+* Meeting Time: ${startTime}
+* Participants:
   - ${participantList || 'No participants listed'}
+* Meeting Description: ${description || 'No description provided'}
 
-RECENT EMAIL CONTEXT WITH PARTICIPANTS:
+EMAIL CONTEXT:
 ${emailContext}
 
-Please generate a structured meeting briefing in the following JSON format:
+WEB RESEARCH:
+No web context available for this meeting.
+
+Your output must follow this structure:
+1. TLDR: A 2–3 sentence summary explaining why this meeting matters.
+2. Who You Are Meeting: Short profiles of each participant.
+3. Relevant Context: Key info from emails.
+4. Strategic Insights: Important signals (what they want, leverage, risks, opportunities).
+5. Suggested Agenda: Simple agenda.
+6. Smart Questions To Ask: 5 thoughtful questions.
+7. Recommended Next Step: Best next action.
+
+Please generate the briefing strictly in the following JSON format:
 {
-  "summary": "2-3 sentence overview of the meeting purpose and context",
-  "attendees": [
-    { "name": "Name", "email": "email", "role": "their likely role/relationship" }
+  "tldr": "summary here",
+  "whoYouAreMeeting": [
+    { "name": "Name", "role": "Role", "company": "Company", "background": "Notable background" }
   ],
-  "emailContext": "Key insights from recent email threads relevant to this meeting",
-  "suggestedAgenda": [
-    "Agenda item 1",
-    "Agenda item 2",
-    "Agenda item 3"
-  ],
-  "suggestedQuestions": [
-    "Question 1",
-    "Question 2",
-    "Question 3"
-  ],
-  "nextSteps": [
-    "Suggested follow-up 1",
-    "Suggested follow-up 2"
-  ]
+  "relevantContext": "context here",
+  "strategicInsights": {
+    "whatTheyWant": "...",
+    "leveragePoints": "...",
+    "potentialRisks": "...",
+    "opportunities": "..."
+  },
+  "suggestedAgenda": ["item 1", "item 2"],
+  "smartQuestionsToAsk": ["q1", "q2"],
+  "recommendedNextStep": "next step here"
 }
 
 Respond ONLY with the JSON object, no markdown formatting, no code blocks, and no extra text before or after the JSON.`;
@@ -66,7 +77,7 @@ Respond ONLY with the JSON object, no markdown formatting, no code blocks, and n
         messages: [
             {
                 role: 'system',
-                content: 'You are a professional executive assistant. Always respond with valid JSON only. Do not wrap the response in markdown blocks.',
+                content: 'You are an elite Chief of Staff and strategic advisor. Always respond with valid JSON only. Do not wrap the response in markdown blocks.',
             },
             { role: 'user', content: prompt },
         ],
@@ -82,16 +93,23 @@ Respond ONLY with the JSON object, no markdown formatting, no code blocks, and n
     } catch {
         // If parsing fails, return a structured fallback
         return {
-            summary: content || 'Unable to generate brief.',
-            attendees: participants.map((p) => ({
+            tldr: content || 'Unable to generate brief.',
+            whoYouAreMeeting: participants.map((p) => ({
                 name: p.name || p.email,
-                email: p.email,
                 role: 'Participant',
+                company: 'Unknown',
+                background: p.email
             })),
-            emailContext: 'Unable to process email context.',
-            suggestedAgenda: ['Review meeting objectives', 'Discuss key topics', 'Align on next steps'],
-            suggestedQuestions: ['What are the key priorities?', 'Are there any blockers?'],
-            nextSteps: ['Follow up on action items', 'Share meeting notes'],
+            relevantContext: 'Unable to process email context.',
+            strategicInsights: {
+                whatTheyWant: 'Determine meeting objectives',
+                leveragePoints: 'N/A',
+                potentialRisks: 'Unclear agenda',
+                opportunities: 'Establish relationship'
+            },
+            suggestedAgenda: ['Review objectives', 'Discuss key topics', 'Align on next steps'],
+            smartQuestionsToAsk: ['What defines success for today?', 'What are the main blockers?'],
+            recommendedNextStep: 'Follow up on action items',
         };
     }
 }
