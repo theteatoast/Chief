@@ -27,206 +27,219 @@ export default function LoginPage() {
   }, [session, router]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const grainCanvas = grainCanvasRef.current;
-    if (!canvas || !grainCanvas) return;
+    let frameId;
+    let ctxRotation;
+    const params = { rotation: 0 };
 
-    const ctx = canvas.getContext('2d');
-    const grainCtx = grainCanvas.getContext('2d');
-
-    const density = ' .:-=+*#%@';
-
-    const params = {
-      rotation: 0,
-    };
-
-    const ctxRotation = gsap.to(params, {
-      rotation: Math.PI * 2,
-      duration: 30,
-      repeat: -1,
-      ease: "none"
-    });
-
-    // Film grain generation
-    const generateFilmGrain = (width, height, intensity = 0.08) => {
-      const imageData = grainCtx.createImageData(width, height);
-      const data = imageData.data;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const grain = (Math.random() - 0.5) * intensity * 255;
-        data[i] = Math.max(0, Math.min(255, 128 + grain));
-        data[i + 1] = Math.max(0, Math.min(255, 128 + grain));
-        data[i + 2] = Math.max(0, Math.min(255, 128 + grain));
-        data[i + 3] = Math.abs(grain) * 1.5;
+    const initAnimation = () => {
+      const canvas = canvasRef.current;
+      const grainCanvas = grainCanvasRef.current;
+      if (!canvas || !grainCanvas) {
+        frameId = requestAnimationFrame(initAnimation);
+        return;
       }
 
-      return imageData;
-    };
+      const ctx = canvas.getContext('2d');
+      const grainCtx = grainCanvas.getContext('2d');
 
-    function render() {
-      timeRef.current += 0.016;
-      const time = timeRef.current;
+      const density = ' .:-=+*#%@';
 
-      const width = canvas.width = grainCanvas.width = window.innerWidth;
-      const height = canvas.height = grainCanvas.height = window.innerHeight;
+      ctxRotation = gsap.to(params, {
+        rotation: Math.PI * 2,
+        duration: 30,
+        repeat: -1,
+        ease: "none"
+      });
 
-      // Deep dark blue background
-      ctx.fillStyle = '#050510';
-      ctx.fillRect(0, 0, width, height);
+      // Film grain generation
+      const generateFilmGrain = (width, height, intensity = 0.08) => {
+        const imageData = grainCtx.createImageData(width, height);
+        const data = imageData.data;
 
-      const centerX = width / 2;
-      const centerY = height / 2 - 30; // Shifted up slightly
-      const radius = Math.min(width, height) * 0.22;
+        for (let i = 0; i < data.length; i += 4) {
+          const grain = (Math.random() - 0.5) * intensity * 255;
+          data[i] = Math.max(0, Math.min(255, 128 + grain));
+          data[i + 1] = Math.max(0, Math.min(255, 128 + grain));
+          data[i + 2] = Math.max(0, Math.min(255, 128 + grain));
+          data[i + 3] = Math.abs(grain) * 1.5;
+        }
 
-      // Background dark glow
-      const bgGradient = ctx.createRadialGradient(
-        centerX, centerY, 0,
-        centerX, centerY, Math.max(width, height) * 0.8
-      );
+        return imageData;
+      };
 
-      bgGradient.addColorStop(0, `rgba(40, 50, 100, 0.4)`);
-      bgGradient.addColorStop(0.3, `rgba(15, 20, 45, 0.2)`);
-      bgGradient.addColorStop(1, 'rgba(5, 5, 16, 0.9)');
+      function render() {
+        timeRef.current += 0.016;
+        const time = timeRef.current;
 
-      ctx.fillStyle = bgGradient;
-      ctx.fillRect(0, 0, width, height);
+        const width = canvas.width = grainCanvas.width = window.innerWidth;
+        const height = canvas.height = grainCanvas.height = window.innerHeight;
 
-      // Core white glow (behind the ASCII)
-      const coreLightRadius = radius * 0.35;
-      const coreGlow = ctx.createRadialGradient(
-        centerX, centerY, 0,
-        centerX, centerY, coreLightRadius * 3
-      );
-      coreGlow.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      coreGlow.addColorStop(0.2, 'rgba(220, 200, 255, 0.8)');
-      coreGlow.addColorStop(0.5, 'rgba(100, 80, 255, 0.2)');
-      coreGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // Deep dark background
+        ctx.fillStyle = '#030303';
+        ctx.fillRect(0, 0, width, height);
 
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, coreLightRadius * 3, 0, Math.PI * 2);
-      ctx.fillStyle = coreGlow;
-      ctx.fill();
+        const centerX = width / 2;
+        const centerY = (height / 2) + 80; // Shifted sphere down significantly
+        const radius = Math.min(width, height) * 0.22;
 
-      // Outer rings
-      ctx.strokeStyle = `rgba(100, 120, 255, 0.2)`;
-      ctx.lineWidth = 1;
+        // Background dark glow
+        const bgGradient = ctx.createRadialGradient(
+          centerX, centerY, 0,
+          centerX, centerY, Math.max(width, height) * 0.8
+        );
 
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius * 1.2, 0, Math.PI * 2);
-      ctx.stroke();
+        bgGradient.addColorStop(0, `rgba(15, 30, 45, 0.5)`);
+        bgGradient.addColorStop(0.3, `rgba(8, 12, 18, 0.3)`);
+        bgGradient.addColorStop(1, 'rgba(3, 3, 3, 0.9)');
 
-      ctx.strokeStyle = `rgba(100, 120, 255, 0.08)`;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius * 1.7, 0, Math.PI * 2);
-      ctx.stroke();
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, width, height);
 
-      // ASCII sphere particles - forming a 3D globe effect
-      ctx.font = '11px "JetBrains Mono", monospace, system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+        // Core white glow (behind the ASCII)
+        const coreLightRadius = radius * 0.35;
+        const coreGlow = ctx.createRadialGradient(
+          centerX, centerY, 0,
+          centerX, centerY, coreLightRadius * 3
+        );
+        coreGlow.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        coreGlow.addColorStop(0.2, 'rgba(120, 240, 255, 0.8)'); // Deep cyan
+        coreGlow.addColorStop(0.5, 'rgba(40, 100, 255, 0.2)');
+        coreGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-      const spacing = 11;
-      const cols = Math.floor(width / spacing);
-      const rows = Math.floor(height / spacing);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, coreLightRadius * 3, 0, Math.PI * 2);
+        ctx.fillStyle = coreGlow;
+        ctx.fill();
 
-      for (let i = 0; i < cols; i++) {
-        for (let j = 0; j < rows; j++) {
-          const x = (i - cols / 2) * spacing + centerX;
-          const y = (j - rows / 2) * spacing + centerY;
+        // Outer rings
+        ctx.strokeStyle = `rgba(100, 200, 255, 0.15)`;
+        ctx.lineWidth = 1;
 
-          const dx = x - centerX;
-          const dy = y - centerY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius * 1.2, 0, Math.PI * 2);
+        ctx.stroke();
 
-          if (dist < radius) {
-            // Calculate 3D sphere coordinate (z)
-            const z = Math.sqrt(Math.max(0, radius * radius - dx * dx - dy * dy));
+        ctx.strokeStyle = `rgba(100, 200, 255, 0.05)`;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius * 1.7, 0, Math.PI * 2);
+        ctx.stroke();
 
-            // Rotate the coordinates globally
-            const angle = params.rotation;
-            const rotX = dx;
-            const rotY = dy * Math.cos(0) - z * Math.sin(0); // Slight tilt
-            const rotZ = dy * Math.sin(0) + z * Math.cos(0);
+        // ASCII sphere particles - forming a 3D globe effect
+        ctx.font = '11px "JetBrains Mono", monospace, system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
-            // Create a pseudo-lighting effect sweeping across the sphere
-            const lightAngle = angle * 2;
-            const lightX = Math.cos(lightAngle) * radius;
-            const lightZ = Math.sin(lightAngle) * radius;
+        const spacing = 11;
+        const cols = Math.floor(width / spacing);
+        const rows = Math.floor(height / spacing);
 
-            // Distance to light source
-            const distToLight = Math.sqrt(Math.pow(rotX - lightX, 2) + Math.pow(rotZ - lightZ, 2));
-            const viewBright = Math.max(0, 1 - (distToLight / (radius * 1.5)));
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < rows; j++) {
+            const x = (i - cols / 2) * spacing + centerX;
+            const y = (j - rows / 2) * spacing + centerY;
 
-            // Add some base visibility to everything on the sphere
-            const baseBright = Math.max(0.1, (rotZ + radius) / (radius * 2));
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
-            // Combine with edge fade (so the text sphere blends into the background)
-            const edgeFade = Math.pow(1 - (dist / radius), 0.3);
+            if (dist < radius) {
+              // Calculate 3D sphere coordinate (z)
+              const z = Math.sqrt(Math.max(0, radius * radius - dx * dx - dy * dy));
 
-            let brightness = (baseBright * 0.4 + viewBright * 0.8) * edgeFade;
+              // Rotate the coordinates globally
+              const angle = params.rotation;
+              const rotX = dx;
+              const rotY = dy * Math.cos(0) - z * Math.sin(0); // Slight tilt
+              const rotZ = dy * Math.sin(0) + z * Math.cos(0);
 
-            if (brightness > 0.05) {
-              // Map brightness to available density characters
-              const charIndex = Math.min(
-                density.length - 1,
-                Math.max(0, Math.floor(brightness * density.length))
-              );
+              // Create a pseudo-lighting effect sweeping across the sphere
+              const lightAngle = angle * 2;
+              const lightX = Math.cos(lightAngle) * radius;
+              const lightZ = Math.sin(lightAngle) * radius;
 
-              let char = density[charIndex];
+              // Distance to light source
+              const distToLight = Math.sqrt(Math.pow(rotX - lightX, 2) + Math.pow(rotZ - lightZ, 2));
+              const viewBright = Math.max(0, 1 - (distToLight / (radius * 1.5)));
 
-              // Core density modifier -> if near center, force solid letters
-              if (dist < coreLightRadius) {
-                char = ['#', '%', '@'][Math.floor(Math.random() * 3)];
-              } else if (dist < coreLightRadius * 1.5) {
-                char = ['+', '=', '*'][Math.floor(Math.random() * 3)];
-              }
+              // Add some base visibility to everything on the sphere
+              const baseBright = Math.max(0.1, (rotZ + radius) / (radius * 2));
 
-              // If character isn't just a space or dot, draw it
-              if (char !== ' ' && char !== '.') {
-                const alpha = Math.max(0.1, brightness * 1.5);
-                const colorIntensity = Math.floor(brightness * 255);
-                ctx.fillStyle = `rgba(${colorIntensity}, ${colorIntensity + 20}, 255, ${alpha})`;
-                ctx.fillText(char, x, y);
+              // Combine with edge fade (so the text sphere blends into the background)
+              const edgeFade = Math.pow(1 - (dist / radius), 0.3);
+
+              let brightness = (baseBright * 0.4 + viewBright * 0.8) * edgeFade;
+
+              if (brightness > 0.05) {
+                // Map brightness to available density characters
+                const charIndex = Math.min(
+                  density.length - 1,
+                  Math.max(0, Math.floor(brightness * density.length))
+                );
+
+                let char = density[charIndex];
+
+                // Core density modifier -> if near center, force solid letters
+                if (dist < coreLightRadius) {
+                  char = ['#', '%', '@'][Math.floor(Math.random() * 3)];
+                } else if (dist < coreLightRadius * 1.5) {
+                  char = ['+', '=', '*'][Math.floor(Math.random() * 3)];
+                }
+
+                if (char !== ' ' && char !== '.') {
+                  const alpha = Math.max(0.1, brightness * 1.5);
+                  // Cyan / Teal mapping
+                  const r = Math.floor(brightness * 50);
+                  const g = Math.floor(brightness * 200 + 55);
+                  ctx.fillStyle = `rgba(${r}, ${g}, 255, ${alpha})`;
+                  ctx.fillText(char, x, y);
+                }
               }
             }
-          }
 
-          // Sparse distant dust
-          if (Math.random() > 0.999) {
-            ctx.fillStyle = `rgba(180, 200, 255, ${Math.random() * 0.5})`;
-            ctx.fillRect(x, y, 1.5, 1.5);
+            // Sparse distant dust
+            if (Math.random() > 0.999) {
+              ctx.fillStyle = `rgba(160, 220, 255, ${Math.random() * 0.5})`;
+              ctx.fillRect(x, y, 1.5, 1.5);
+            }
           }
         }
+
+        // Continuous film grain render
+        grainCtx.clearRect(0, 0, width, height);
+        const grainImageData = generateFilmGrain(width, height, 0.05); // Very low intensity grain
+        grainCtx.putImageData(grainImageData, 0, 0);
+
+        frameId = requestAnimationFrame(render);
       }
 
-      // Continuous film grain render
-      grainCtx.clearRect(0, 0, width, height);
-      const grainImageData = generateFilmGrain(width, height, 0.05); // Very low intensity grain
-      grainCtx.putImageData(grainImageData, 0, 0);
+      render();
 
-      frameRef.current = requestAnimationFrame(render);
-    }
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    };
 
-    render();
+    const cleanup = initAnimation();
 
     return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
+      if (frameId) {
+        cancelAnimationFrame(frameId);
       }
-      ctxRotation.kill();
+      if (ctxRotation) ctxRotation.kill();
+      if (cleanup && typeof cleanup === 'function') cleanup();
     };
   }, []);
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050510]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-[#030303]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100vh', background: '#050510', position: 'relative', overflow: 'hidden' }}>
+    <div ref={containerRef} style={{ width: '100%', height: '100vh', background: '#030303', position: 'relative', overflow: 'hidden' }}>
       {/* Navigation */}
       <nav style={{
         position: 'absolute',
@@ -289,6 +302,31 @@ export default function LoginPage() {
         </div>
       </nav>
 
+      {/* Sub-header text */}
+      <div style={{
+        position: 'absolute',
+        top: '6rem',
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        display: 'flex',
+        justifyContent: 'center',
+        pointerEvents: 'none'
+      }}>
+        <div style={{
+          fontFamily: 'Inter, system-ui, sans-serif',
+          fontSize: '22px', // Larger
+          fontWeight: '400',
+          color: '#ffffff',
+          letterSpacing: '10px',
+          textTransform: 'uppercase',
+          opacity: 0.9,
+          textShadow: '0 0 30px rgba(100, 200, 255, 0.6)'
+        }}>
+          Automate Your Worklife
+        </div>
+      </div>
+
       {/* Canvas Container underneath the text */}
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 10 }}>
         <canvas
@@ -316,37 +354,35 @@ export default function LoginPage() {
         />
       </div>
 
-      {/* Center Action Container */}
+      {/* Left Action Container */}
       <div style={{
         position: 'absolute',
-        top: '65%',
-        left: 0,
-        right: 0,
+        top: '35%',
+        left: '4rem',
         zIndex: 50,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'flex-start'
       }}>
         <div style={{
           fontFamily: '"Arial Black", Impact, sans-serif',
-          fontSize: 'clamp(5rem, 16vw, 15rem)',
+          fontSize: 'clamp(3rem, 8vw, 7rem)', /* Much smaller font size */
           fontWeight: '900',
           color: '#ffffff',
           lineHeight: 0.8,
           letterSpacing: '-0.02em',
-          textShadow: '0 0 80px rgba(255, 255, 255, 0.4), 0 0 30px rgba(180, 160, 255, 0.5)',
-          WebkitTextStroke: '1px rgba(255,255,255,0.05)',
+          textShadow: '0 0 60px rgba(255, 255, 255, 0.3), 0 0 30px rgba(100, 200, 255, 0.5)',
+          WebkitTextStroke: '0.3px rgba(255,255,255,0.05)',
           pointerEvents: 'none',
           marginBottom: '2rem'
         }}>
-          ARTIFICIAL
+          CHIEF
         </div>
 
         {/* Google Sign In Button */}
         <button
           onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-          className="group relative inline-flex items-center gap-3 rounded-xl bg-[#1b1b24] hover:bg-[#252535] border border-white/10 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 pointer-events-auto shadow-2xl"
+          className="group relative inline-flex items-center gap-3 rounded-full bg-[#0a0a0f]/90 hover:bg-[#12121c] border border-cyan-500/20 px-7 py-4 text-sm font-semibold text-white transition-all duration-300 pointer-events-auto backdrop-blur-sm shadow-[0_0_20px_rgba(100,200,255,0.05)] hover:shadow-[0_0_30px_rgba(100,200,255,0.15)]"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
             <path
@@ -373,8 +409,8 @@ export default function LoginPage() {
       {/* Left side text */}
       <div style={{
         position: 'absolute',
-        left: '3rem',
-        top: '45%',
+        left: '4rem',
+        bottom: '8rem',
         zIndex: 50,
       }}>
         <div style={{
@@ -396,8 +432,8 @@ export default function LoginPage() {
       {/* Right side text */}
       <div style={{
         position: 'absolute',
-        right: '3rem',
-        top: '45%',
+        right: '4rem',
+        bottom: '8rem',
         zIndex: 50,
       }}>
         <div style={{
