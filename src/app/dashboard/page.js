@@ -58,8 +58,8 @@ export default function Dashboard() {
 
     if (status === 'loading') {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-gray-950">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+            <div className="flex min-h-screen items-center justify-center bg-[#030303]">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
             </div>
         );
     }
@@ -67,7 +67,7 @@ export default function Dashboard() {
     if (!session) return null;
 
     return (
-        <div className="min-h-screen bg-gray-950">
+        <div className="min-h-screen bg-[#030303]">
             <Navbar />
 
             <main className="mx-auto max-w-6xl px-6 pt-24 pb-16">
@@ -130,7 +130,7 @@ export default function Dashboard() {
 
                             {meetings.length === 0 ? (
                                 <div className="rounded-2xl border border-dashed border-white/10 bg-gray-900/30 px-6 py-16 text-center">
-                                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10">
+                                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/10">
                                         <span className="text-3xl">📅</span>
                                     </div>
                                     <h3 className="text-lg font-medium text-white mb-2">No upcoming meetings</h3>

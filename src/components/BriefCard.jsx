@@ -6,13 +6,13 @@ export default function BriefCard({ brief }) {
     const content = typeof brief.content === 'string' ? JSON.parse(brief.content) : brief.content;
 
     return (
-        <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/30 to-purple-950/20 overflow-hidden">
+        <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/20 to-[#030303]/80 overflow-hidden shadow-[0_0_30px_rgba(100,200,255,0.05)]">
             {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 px-6 py-4 border-b border-indigo-500/10">
+            <div className="bg-gradient-to-r from-cyan-500/10 to-[#050510]/50 px-6 py-4 border-b border-cyan-500/10">
                 <div className="flex items-center gap-2">
-                    <span className="text-lg">📋</span>
+                    <span className="text-lg text-cyan-400" style={{ textShadow: '0 0 10px rgba(100,200,255,0.5)' }}>📋</span>
                     <h3 className="text-base font-semibold text-white">AI Meeting Brief</h3>
-                    <span className="ml-auto text-xs text-gray-500">
+                    <span className="ml-auto text-xs text-cyan-300/60">
                         {new Date(brief.created_at).toLocaleString()}
                     </span>
                 </div>
@@ -35,7 +35,7 @@ export default function BriefCard({ brief }) {
                                     <div className="flex items-start justify-between mb-1">
                                         <div>
                                             <p className="text-sm font-semibold text-white">{person.name}</p>
-                                            <p className="text-xs text-indigo-300">{person.role} {person.company && person.company !== 'Unknown' ? `@ ${person.company}` : ''}</p>
+                                            <p className="text-xs text-cyan-300/80">{person.role} {person.company && person.company !== 'Unknown' ? `@ ${person.company}` : ''}</p>
                                         </div>
                                     </div>
                                     {person.background && person.background !== person.email && person.background !== 'Unknown' && (
@@ -92,7 +92,7 @@ export default function BriefCard({ brief }) {
                         <ol className="space-y-2">
                             {content.suggestedAgenda.map((item, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm text-gray-300">
-                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-semibold text-indigo-300 border border-indigo-500/20">
+                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/15 text-xs font-semibold text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(100,200,255,0.2)]">
                                         {i + 1}
                                     </span>
                                     <span className="pt-0.5">{item}</span>
@@ -108,7 +108,7 @@ export default function BriefCard({ brief }) {
                         <ul className="space-y-2.5">
                             {content.smartQuestionsToAsk.map((q, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm text-gray-300 bg-white/5 p-2.5 rounded-lg border border-white/5">
-                                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]" />
+                                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(100,240,255,0.6)]" />
                                     <span className="font-medium">{q}</span>
                                 </li>
                             ))}

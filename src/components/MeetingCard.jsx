@@ -56,11 +56,11 @@ export default function MeetingCard({ meeting, onBriefGenerated }) {
     };
 
     return (
-        <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-gray-900/80 to-gray-800/50 p-6 transition-all duration-300 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5">
+        <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0a0f]/80 to-[#030303]/50 p-6 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-[0_0_15px_rgba(100,200,255,0.1)]">
             {/* Time badge */}
             <div className="absolute top-4 right-4">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-300 ring-1 ring-indigo-500/20">
-                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-300 ring-1 ring-cyan-500/20">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
                     {getTimeUntil()}
                 </span>
             </div>
@@ -113,9 +113,9 @@ export default function MeetingCard({ meeting, onBriefGenerated }) {
             <button
                 onClick={handleGenerateBrief}
                 disabled={loading}
-                className={`w-full rounded-xl py-3 px-4 text-sm font-semibold transition-all duration-200 ${hasBrief
-                        ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-                        : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:from-indigo-400 hover:to-purple-500'
+                className={`w-full rounded-xl py-3 px-4 text-sm font-semibold transition-all duration-300 ${hasBrief
+                    ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                    : 'bg-[#0a0a0f]/90 border border-cyan-500/20 shadow-[0_0_15px_rgba(100,200,255,0.05)] hover:shadow-[0_0_25px_rgba(100,200,255,0.15)] hover:border-cyan-500/40 text-white'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
                 {loading ? (

@@ -8,10 +8,10 @@ export default function Navbar() {
     if (!session) return null;
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-gray-950/80 backdrop-blur-xl">
+        <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-[#030303]/80 backdrop-blur-xl">
             <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 font-bold text-white shadow-lg shadow-indigo-500/25">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 font-bold text-white shadow-lg shadow-cyan-500/25">
                         C
                     </div>
                     <span className="text-lg font-semibold text-white tracking-tight">
@@ -29,7 +29,7 @@ export default function Navbar() {
                             <img
                                 src={session.user.image}
                                 alt={session.user.name || 'User'}
-                                className="h-9 w-9 rounded-full ring-2 ring-indigo-500/50"
+                                className="h-9 w-9 rounded-full ring-2 ring-cyan-500/50"
                             />
                         )}
                     </div>

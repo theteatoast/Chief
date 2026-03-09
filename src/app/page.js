@@ -29,7 +29,14 @@ export default function LoginPage() {
   useEffect(() => {
     let frameId;
     let ctxRotation;
-    const params = { rotation: 0 };
+    let glitchTweens = [];
+
+    const params = {
+      rotation: 0,
+      atmosphereShift: 0,
+      glitchIntensity: 0,
+      glitchFrequency: 0
+    };
 
     const initAnimation = () => {
       const canvas = canvasRef.current;
@@ -51,11 +58,36 @@ export default function LoginPage() {
         ease: "none"
       });
 
+      glitchTweens.push(gsap.to(params, {
+        atmosphereShift: 1,
+        duration: 6,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      }));
+
+      // Glitch animations referencing 21st.dev artificial-hero
+      glitchTweens.push(gsap.to(params, {
+        glitchIntensity: 1,
+        duration: 0.1,
+        repeat: -1,
+        yoyo: true,
+        ease: "power2.inOut",
+        repeatDelay: Math.random() * 3 + 1
+      }));
+
+      glitchTweens.push(gsap.to(params, {
+        glitchFrequency: 1,
+        duration: 0.05,
+        repeat: -1,
+        yoyo: true,
+        ease: "none"
+      }));
+
       // Film grain generation
       const generateFilmGrain = (width, height, intensity = 0.08) => {
         const imageData = grainCtx.createImageData(width, height);
         const data = imageData.data;
-
         for (let i = 0; i < data.length; i += 4) {
           const grain = (Math.random() - 0.5) * intensity * 255;
           data[i] = Math.max(0, Math.min(255, 128 + grain));
@@ -63,8 +95,134 @@ export default function LoginPage() {
           data[i + 2] = Math.max(0, Math.min(255, 128 + grain));
           data[i + 3] = Math.abs(grain) * 1.5;
         }
-
         return imageData;
+      };
+
+      // Glitched Orb Logic
+      const drawGlitchedOrb = (centerX, centerY, radius, hue, time, glitchIntensity) => {
+        ctx.save();
+
+        // Random glitch triggers
+        const shouldGlitch = Math.random() < 0.1 && glitchIntensity > 0.5;
+        const glitchOffset = shouldGlitch ? (Math.random() - 0.5) * 20 * glitchIntensity : 0;
+        const glitchScale = shouldGlitch ? 1 + (Math.random() - 0.5) * 0.3 * glitchIntensity : 1;
+
+        // Apply glitch transformations
+        if (shouldGlitch) {
+          ctx.translate(glitchOffset, glitchOffset * 0.8);
+          ctx.scale(glitchScale, 1 / glitchScale);
+        }
+
+        // Main orb gradient
+        const orbGradient = ctx.createRadialGradient(
+          centerX, centerY, 0,
+          centerX, centerY, radius * 1.5
+        );
+
+        orbGradient.addColorStop(0, `hsla(${hue + 10}, 100%, 95%, 0.8)`);
+        orbGradient.addColorStop(0.2, `hsla(${hue + 20}, 90%, 80%, 0.6)`);
+        orbGradient.addColorStop(0.5, `hsla(${hue}, 70%, 50%, 0.2)`);
+        orbGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = orbGradient;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Bright center circle with glitch
+        const centerRadius = radius * 0.3;
+        ctx.fillStyle = `hsla(${hue + 20}, 100%, 95%, 0.9)`;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, centerRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Glitch effects on the orb
+        if (shouldGlitch) {
+          // RGB separation effect
+          ctx.globalCompositeOperation = 'screen';
+
+          // Hot pink/red channel offset
+          ctx.fillStyle = `hsla(340, 100%, 50%, ${0.6 * glitchIntensity})`;
+          ctx.beginPath();
+          ctx.arc(centerX + glitchOffset * 0.5, centerY, centerRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Electric blue channel offset
+          ctx.fillStyle = `hsla(220, 100%, 50%, ${0.5 * glitchIntensity})`;
+          ctx.beginPath();
+          ctx.arc(centerX - glitchOffset * 0.5, centerY, centerRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.globalCompositeOperation = 'source-over';
+
+          // Digital noise lines
+          ctx.strokeStyle = `rgba(255, 255, 255, ${0.6 * glitchIntensity})`;
+          ctx.lineWidth = 1;
+          for (let i = 0; i < 5; i++) {
+            const y = centerY - radius + (Math.random() * radius * 2);
+            const startX = centerX - radius + Math.random() * 20;
+            const endX = centerX + radius - Math.random() * 20;
+
+            ctx.beginPath();
+            ctx.moveTo(startX, y);
+            ctx.lineTo(endX, y);
+            ctx.stroke();
+          }
+
+          // Pixelated corruption blocks
+          ctx.fillStyle = `rgba(255, 40, 150, ${0.4 * glitchIntensity})`;
+          for (let i = 0; i < 3; i++) {
+            const blockX = centerX - radius + Math.random() * radius * 2;
+            const blockY = centerY - radius + Math.random() * radius * 2;
+            const blockSize = Math.random() * 10 + 2;
+            ctx.fillRect(blockX, blockY, blockSize, blockSize);
+          }
+        }
+
+        // Outer rings with glitch distortion
+        ctx.strokeStyle = `hsla(${hue + 20}, 80%, 70%, 0.3)`;
+        ctx.lineWidth = 1.5;
+
+        if (shouldGlitch) {
+          // Distorted ring segments
+          const segments = 8;
+          for (let i = 0; i < segments; i++) {
+            const startAngle = (i / segments) * Math.PI * 2;
+            const endAngle = ((i + 1) / segments) * Math.PI * 2;
+            const ringRadius = radius * 1.2 + (Math.random() - 0.5) * 10 * glitchIntensity;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, ringRadius, startAngle, endAngle);
+            ctx.stroke();
+          }
+        } else {
+          // Normal rings
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius * 1.2, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = `hsla(${hue + 20}, 80%, 70%, 0.06)`;
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius * 1.7, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Data corruption effect
+        if (shouldGlitch && Math.random() < 0.3) {
+          ctx.globalCompositeOperation = 'difference';
+          ctx.fillStyle = `rgba(255, 255, 255, ${0.8 * glitchIntensity})`;
+
+          // Horizontal glitch bars
+          for (let i = 0; i < 3; i++) {
+            const barY = centerY - radius + Math.random() * radius * 2;
+            const barHeight = Math.random() * 5 + 1;
+            ctx.fillRect(centerX - radius, barY, radius * 2, barHeight);
+          }
+
+          ctx.globalCompositeOperation = 'source-over';
+        }
+
+        ctx.restore();
       };
 
       function render() {
@@ -74,57 +232,32 @@ export default function LoginPage() {
         const width = canvas.width = grainCanvas.width = window.innerWidth;
         const height = canvas.height = grainCanvas.height = window.innerHeight;
 
-        // Deep dark background
+        // Jet-Black background
         ctx.fillStyle = '#030303';
         ctx.fillRect(0, 0, width, height);
 
         const centerX = width / 2;
-        const centerY = (height / 2) + 80; // Shifted sphere down significantly
+        const centerY = (height / 2) + 80;
         const radius = Math.min(width, height) * 0.22;
 
-        // Background dark glow
+        // Atmospheric background pulse matching 21st.dev
         const bgGradient = ctx.createRadialGradient(
           centerX, centerY, 0,
           centerX, centerY, Math.max(width, height) * 0.8
         );
 
-        bgGradient.addColorStop(0, `rgba(15, 30, 45, 0.5)`);
-        bgGradient.addColorStop(0.3, `rgba(8, 12, 18, 0.3)`);
+        const hue = 180 + params.atmosphereShift * 30; // Shifting between Teal(180) and Blue(210)
+        bgGradient.addColorStop(0, `hsla(${hue}, 80%, 15%, 0.4)`);
+        bgGradient.addColorStop(0.3, `hsla(${hue - 10}, 60%, 8%, 0.2)`);
         bgGradient.addColorStop(1, 'rgba(3, 3, 3, 0.9)');
 
         ctx.fillStyle = bgGradient;
         ctx.fillRect(0, 0, width, height);
 
-        // Core white glow (behind the ASCII)
-        const coreLightRadius = radius * 0.35;
-        const coreGlow = ctx.createRadialGradient(
-          centerX, centerY, 0,
-          centerX, centerY, coreLightRadius * 3
-        );
-        coreGlow.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        coreGlow.addColorStop(0.2, 'rgba(120, 240, 255, 0.8)'); // Deep cyan
-        coreGlow.addColorStop(0.5, 'rgba(40, 100, 255, 0.2)');
-        coreGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // Draw the glitched orb
+        drawGlitchedOrb(centerX, centerY, radius, hue, time, params.glitchIntensity);
 
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, coreLightRadius * 3, 0, Math.PI * 2);
-        ctx.fillStyle = coreGlow;
-        ctx.fill();
-
-        // Outer rings
-        ctx.strokeStyle = `rgba(100, 200, 255, 0.15)`;
-        ctx.lineWidth = 1;
-
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius * 1.2, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = `rgba(100, 200, 255, 0.05)`;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius * 1.7, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // ASCII sphere particles - forming a 3D globe effect
+        // ASCII sphere particles
         ctx.font = '11px "JetBrains Mono", monospace, system-ui';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -143,34 +276,25 @@ export default function LoginPage() {
             const dist = Math.sqrt(dx * dx + dy * dy);
 
             if (dist < radius) {
-              // Calculate 3D sphere coordinate (z)
               const z = Math.sqrt(Math.max(0, radius * radius - dx * dx - dy * dy));
 
-              // Rotate the coordinates globally
               const angle = params.rotation;
               const rotX = dx;
-              const rotY = dy * Math.cos(0) - z * Math.sin(0); // Slight tilt
+              const rotY = dy * Math.cos(0) - z * Math.sin(0);
               const rotZ = dy * Math.sin(0) + z * Math.cos(0);
 
-              // Create a pseudo-lighting effect sweeping across the sphere
               const lightAngle = angle * 2;
               const lightX = Math.cos(lightAngle) * radius;
               const lightZ = Math.sin(lightAngle) * radius;
 
-              // Distance to light source
               const distToLight = Math.sqrt(Math.pow(rotX - lightX, 2) + Math.pow(rotZ - lightZ, 2));
               const viewBright = Math.max(0, 1 - (distToLight / (radius * 1.5)));
-
-              // Add some base visibility to everything on the sphere
               const baseBright = Math.max(0.1, (rotZ + radius) / (radius * 2));
-
-              // Combine with edge fade (so the text sphere blends into the background)
               const edgeFade = Math.pow(1 - (dist / radius), 0.3);
 
               let brightness = (baseBright * 0.4 + viewBright * 0.8) * edgeFade;
 
               if (brightness > 0.05) {
-                // Map brightness to available density characters
                 const charIndex = Math.min(
                   density.length - 1,
                   Math.max(0, Math.floor(brightness * density.length))
@@ -178,19 +302,21 @@ export default function LoginPage() {
 
                 let char = density[charIndex];
 
-                // Core density modifier -> if near center, force solid letters
-                if (dist < coreLightRadius) {
+                if (dist < radius * 0.3) {
                   char = ['#', '%', '@'][Math.floor(Math.random() * 3)];
-                } else if (dist < coreLightRadius * 1.5) {
+                } else if (dist < radius * 0.5) {
                   char = ['+', '=', '*'][Math.floor(Math.random() * 3)];
+                }
+
+                // Glitch the ASCII characters near the orb randomly based on Intensity
+                if (dist < radius * 0.9 && params.glitchIntensity > 0.8 && Math.random() < 0.2) {
+                  const glitchChars = ['█', '▓', '▒', '░', '▄', '▀', '■', '□'];
+                  char = glitchChars[Math.floor(Math.random() * glitchChars.length)];
                 }
 
                 if (char !== ' ' && char !== '.') {
                   const alpha = Math.max(0.1, brightness * 1.5);
-                  // Cyan / Teal mapping
-                  const r = Math.floor(brightness * 50);
-                  const g = Math.floor(brightness * 200 + 55);
-                  ctx.fillStyle = `rgba(${r}, ${g}, 255, ${alpha})`;
+                  ctx.fillStyle = `hsla(${hue}, 100%, 75%, ${alpha})`;
                   ctx.fillText(char, x, y);
                 }
               }
@@ -198,21 +324,46 @@ export default function LoginPage() {
 
             // Sparse distant dust
             if (Math.random() > 0.999) {
-              ctx.fillStyle = `rgba(160, 220, 255, ${Math.random() * 0.5})`;
+              ctx.fillStyle = `hsla(${hue}, 80%, 80%, ${Math.random() * 0.5})`;
               ctx.fillRect(x, y, 1.5, 1.5);
             }
           }
         }
 
-        // Continuous film grain render
+        // Film grain generation & enhanced glitch compositing
         grainCtx.clearRect(0, 0, width, height);
-        const grainImageData = generateFilmGrain(width, height, 0.05); // Very low intensity grain
+        const grainIntensity = 0.05 + Math.sin(time * 10) * 0.02;
+        const grainImageData = generateFilmGrain(width, height, grainIntensity);
         grainCtx.putImageData(grainImageData, 0, 0);
+
+        // Enhanced grain explosions during heavy glitch
+        if (params.glitchIntensity > 0.6) {
+          grainCtx.globalCompositeOperation = 'screen';
+          for (let i = 0; i < 50; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const size = Math.random() * 2 + 0.5;
+            const opacity = Math.random() * 0.3 * params.glitchIntensity;
+
+            grainCtx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+            grainCtx.beginPath();
+            grainCtx.arc(x, y, size, 0, Math.PI * 2);
+            grainCtx.fill();
+          }
+        }
 
         frameId = requestAnimationFrame(render);
       }
 
       render();
+
+      const handleResize = () => {
+        if (canvasRef.current) {
+          canvasRef.current.width = window.innerWidth;
+          canvasRef.current.height = window.innerHeight;
+        }
+      };
+      window.addEventListener('resize', handleResize);
 
       return () => {
         window.removeEventListener('resize', handleResize);
@@ -226,6 +377,7 @@ export default function LoginPage() {
         cancelAnimationFrame(frameId);
       }
       if (ctxRotation) ctxRotation.kill();
+      glitchTweens.forEach(t => t.kill());
       if (cleanup && typeof cleanup === 'function') cleanup();
     };
   }, []);
@@ -279,13 +431,13 @@ export default function LoginPage() {
           transform: 'translateX(-50%)'
         }}>
           <a href="#" style={{ color: 'white', textDecoration: 'none', opacity: 0.7, pointerEvents: 'auto' }}>
-            Creative Journey
+            Home
           </a>
           <a href="#" style={{ color: 'white', textDecoration: 'none', opacity: 0.7, pointerEvents: 'auto' }}>
             About
           </a>
           <a href="#" style={{ color: 'white', textDecoration: 'none', opacity: 0.7, pointerEvents: 'auto' }}>
-            Sound
+            Pricing
           </a>
         </div>
 
@@ -354,6 +506,34 @@ export default function LoginPage() {
         />
       </div>
 
+      {/* Side Decorative Grids */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        width: '30vw',
+        backgroundSize: '30px 30px',
+        backgroundImage: 'linear-gradient(to right, rgba(100,200,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(100,200,255,0.03) 1px, transparent 1px)',
+        maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+        WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+        pointerEvents: 'none',
+        zIndex: 5
+      }} />
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        right: 0,
+        width: '30vw',
+        backgroundSize: '30px 30px',
+        backgroundImage: 'linear-gradient(to right, rgba(100,200,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(100,200,255,0.03) 1px, transparent 1px)',
+        maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+        WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+        pointerEvents: 'none',
+        zIndex: 5
+      }} />
+
       {/* Left Action Container */}
       <div style={{
         position: 'absolute',
@@ -404,6 +584,44 @@ export default function LoginPage() {
           </svg>
           <span style={{ letterSpacing: '0.5px' }}>Access Dashboard</span>
         </button>
+      </div>
+
+      {/* Right Content Container */}
+      <div style={{
+        position: 'absolute',
+        top: '40%',
+        right: '4rem',
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        textAlign: 'right',
+        maxWidth: '320px',
+        pointerEvents: 'none'
+      }}>
+        <div style={{
+          fontFamily: 'Inter, system-ui, sans-serif',
+          fontSize: '11px',
+          fontWeight: '600',
+          color: '#8ae0ff',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          marginBottom: '1rem',
+          opacity: 0.9,
+          textShadow: '0 0 10px rgba(100,200,255,0.4)',
+        }}>
+          Your AI Chief of Staff
+        </div>
+        <div style={{
+          fontFamily: 'Inter, system-ui, sans-serif',
+          fontSize: '20px',
+          fontWeight: '300',
+          color: '#ffffff',
+          lineHeight: '1.5',
+          opacity: 0.85,
+        }}>
+          AI that runs your entire work life
+        </div>
       </div>
 
       {/* Left side text */}
@@ -463,9 +681,8 @@ export default function LoginPage() {
         alignItems: 'center',
         gap: '0.75rem'
       }}>
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-black font-bold text-[10px]" style={{ fontFamily: 'Georgia, serif' }}>
-          N
-        </div>
+
+
         <div style={{
           fontFamily: 'Inter, system-ui, sans-serif',
           fontSize: '9px',
@@ -475,9 +692,9 @@ export default function LoginPage() {
           textTransform: 'uppercase',
           opacity: 0.4
         }}>
-          Chief of Staff AI
+
         </div>
       </div>
-    </div>
+    </div >
   );
 }
