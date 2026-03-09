@@ -371,7 +371,7 @@ export default function LoginPage() {
           color: '#ffffff',
           lineHeight: 0.8,
           letterSpacing: '-0.02em',
-          textShadow: '0 0 60px rgba(255, 255, 255, 0.3), 0 0 30px rgba(100, 200, 255, 0.5)',
+          textShadow: '0 0 20px rgba(255, 255, 255, 0.15), 0 0 10px rgba(100, 200, 255, 0.25)',
           WebkitTextStroke: '0.3px rgba(255,255,255,0.05)',
           pointerEvents: 'none',
           marginBottom: '2rem'
